@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mini Battle Royale V4</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;color:#fff;font-family:Arial,Helvetica,sans-serif}
+body{user-select:none}
+#game{position:relative;width:100vw;height:100vh;background:#263522;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+#hud{position:absolute;inset:0;pointer-events:none}
+.top{display:flex;justify-content:space-between;align-items:flex-start;padding:14px;gap:10px}
+.panel{background:rgba(8,12,15,.78);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 13px;backdrop-filter:blur(6px);box-shadow:0 8px 30px #0005}
+.stats{min-width:220px}.stats b{font-size:16px}.bar{width:180px;height:10px;background:#30343a;border-radius:8px;overflow:hidden;margin-top:7px}.hp{height:100%;background:#35d06f;width:100%;transition:.15s}
+.ammo{font-size:25px;font-weight:800;text-align:right}.ammo small{font-size:13px;color:#aaa}
+#weapon{font-size:13px;color:#9fd6ff;text-align:right;margin-top:4px}
+#mini{width:150px;height:150px;border-radius:12px;background:#101915;border:1px solid #ffffff25}
+#message{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:22px;font-weight:800;text-shadow:0 3px 15px #000;opacity:0;transition:.2s}
+#cross{position:absolute;left:50%;top:50%;width:24px;height:24px;transform:translate(-50%,-50%);opacity:.9}
+#cross:before,#cross:after{content:"";position:absolute;background:#fff;box-shadow:0 0 5px #000}
+#cross:before{width:2px;height:24px;left:11px}.#cross:after{height:2px;width:24px;top:11px}
+#controls{position:absolute;left:14px;bottom:14px}
+#controls div{font-size:12px;color:#cdd3d8;line-height:1.7}
+#zoneText{font-weight:bold;color:#8ecbff}
+#pickup{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);padding:9px 15px;border-radius:20px;background:#111cddc;border:1px solid #fff3;opacity:0;transition:.15s}
+#feed{position:absolute;right:175px;top:180px;text-align:right;font-size:12px;line-height:1.6;text-shadow:0 2px 5px #000}
+#damage{position:absolute;inset:0;background:rgba(255,0,0,.22);opacity:0;pointer-events:none}
+#menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center,#263b31cc,#050707ee);z-index:10}
+.card{width:min(520px,92vw);text-align:center;padding:34px;border:1px solid #ffffff20;background:#0c1210e8;border-radius:20px;box-shadow:0 25px 80px #000b}
+.card h1{font-size:42px;margin:0 0 8px}.card h1 span{color:#7ee787}.card p{color:#aeb8b2;line-height:1.6}
+button{border:0;border-radius:10px;padding:13px 25px;background:#65d66f;color:#061008;font-weight:800;font-size:15px;cursor:pointer}
+button:hover{filter:brightness(1.1)}.hidden{display:none!important}
+.tip{font-size:12px!important;color:#7f8b84!important;margin-top:18px}
+#toast{position:absolute;left:50%;top:12%;transform:translateX(-50%);font-weight:800;text-shadow:0 2px 8px #000;opacity:0}
+@media(max-width:700px){.top{padding:8px}.stats{min-width:170px}.bar{width:140px}.ammo{font-size:20px}#mini{width:110px;height:110px}.card h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div id="game">
+<canvas id="c"></canvas>
+<div id="hud">
+  <div class="top">
+    <div class="panel stats">
+      <b>❤️ <span id="hpText">100</span> HP</b>
+      <div class="bar"><div id="hpBar" class="hp"></div></div>
+      <div style="margin-top:7px">🛡️ <span id="armorText">0</span> &nbsp; 💀 <span id="kills">0</span> &nbsp; 👥 <span id="left">12</span></div>
+      <div id="zoneText">🔵 Safe zone: 100%</div>
+    </div>
+    <div class="panel">
+      <canvas id="mini" width="150" height="150"></canvas>
+      <div id="weapon">PISTOL</div>
+      <div class="ammo"><span id="mag">12</span> <small>/ <span id="reserve">48</span></small></div>
+    </div>
+  </div>
+  <div id="message"></div><div id="toast"></div><div id="damage"></div>
+  <div id="feed"></div><div id="pickup">E — Pick up</div><div id="cross"></div>
+  <div id="controls" class="panel">
+    <div><b>WASD</b> Move &nbsp; <b>SHIFT</b> Sprint</div>
+    <div><b>Mouse</b> Aim/Shoot &nbsp; <b>R</b> Reload &nbsp; <b>1/2/3</b> Weapon</div>
+    <div><b>E</b> Loot &nbsp; <b>SPACE</b> Jump/evade</div>
+  </div>
+</div>
+<div id="menu">
+  <div class="card">
+    <h1>MINI <span>BATTLE ROYALE</span></h1>
+    <p>Survive the shrinking zone, loot weapons and supplies, and eliminate every enemy.</p>
+    <button id="start">DROP IN</button>
+    <p class="tip">V4 • Pure HTML + CSS + JavaScript • No external libraries</p>
+  </div>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),mini=document.getElementById('mini'),mx=mini.getContext('2d');
+let W,H,keys={},mouse={x:0,y:0,down:false},running=false,last=0,shake=0,particles=[],bullets=[],enemies=[],loot=[],feed=[];
+const world={w:2600,h:1800};
+let cam={x:0,y:0},zone={x:1300,y:900,r:830,start:830,end:120,t:0,duration:150},kills=0;
+const weapons={
+ pistol:{name:'PISTOL',damage:25,rate:300,mag:12,max:12,reserve:48,speed:10,color:'#ffd166'},
+ smg:{name:'SMG',damage:16,rate:90,mag:30,max:30,reserve:90,speed:13,color:'#67e8f9'},
+ rifle:{name:'ASSAULT RIFLE',damage:34,rate:145,mag:30,max:30,reserve:90,speed:15,color:'#ff8fab'}
+};
+let gun='pistol', ammo={},player;
+for(const k in weapons) ammo[k]={mag:weapons[k].mag,reserve:weapons[k].reserve};
+const obstacles=[
+ {x:380,y:300,w:280,h:170},{x:830,y:280,w:330,h:170},{x:1500,y:300,w:350,h:190},
+ {x:420,y:1050,w:330,h:220},{x:980,y:1150,w:300,h:180},{x:1740,y:1040,w:350,h:230},
+ {x:1150,y:620,w:260,h:140}
+];
+
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
+addEventListener('resize',resize);resize();
+addEventListener('keydown',e=>{keys[e.code]=true;if(!running)return;if(e.code==='KeyR')reload();if(e.code==='Digit1')switchGun('pistol');if(e.code==='Digit2')switchGun('smg');if(e.code==='Digit3')switchGun('rifle');if(e.code==='KeyE')pickup();if(e.code==='Space'){e.preventDefault();jump()}});
+addEventListener('keyup',e=>keys[e.code]=false);
+canvas.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+canvas.addEventListener('mousedown',e=>{if(e.button===0)mouse.down=true});
+addEventListener('mouseup',()=>mouse.down=false);
+document.getElementById('start').onclick=start;
+
+function rnd(a,b){return Math.random()*(b-a)+a}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function free(x,y,r=20){return x>r&&y>r&&x<world.w-r&&y<world.h-r&&!obstacles.some(o=>x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r)}
+function spawnFree(){let x,y;do{x=rnd(100,world.w-100);y=rnd(100,world.h-100)}while(!free(x,y,30)||dist({x,y},player)>400);return{x,y}}
+
+function start(){
+ document.getElementById('menu').classList.add('hidden');running=true;kills=0;zone.t=0;feed=[];particles=[];bullets=[];loot=[];enemies=[];
+ player={x:1300,y:900,r:18,hp:100,armor:0,speed:235,angle:0,z:0,vy:0,lastShot:0,reloading:false,invuln:0};
+ for(const k in weapons)ammo[k]={mag:weapons[k].mag,reserve:weapons[k].reserve};
+ for(let i=0;i<12;i++){let p=spawnFree();enemies.push({x:p.x,y:p.y,r:17,hp:80,max:80,speed:rnd(70,105),last:0,angle:0,dead:false,strafe:rnd(-1,1),shoot:rnd(0,2)})}
+ for(let i=0;i<30;i++){let p={x:rnd(80,world.w-80),y:rnd(80,world.h-80)};if(free(p.x,p.y,15))loot.push({x:p.x,y:p.y,type:['ammo','med','armor','smg','rifle'][Math.floor(Math.random()*5)],taken:false})}
+ show('DROP IN! ELIMINATE ALL ENEMIES',1800);last=performance.now();requestAnimationFrame(loop)
+}
+
+function switchGun(k){if(ammo[k]){gun=k;player.reloading=false;show(weapons[k].name,500)}}
+function reload(){if(player.reloading||ammo[gun].mag===weapons[gun].max||ammo[gun].reserve<=0)return;player.reloading=true;show('RELOADING...',800);setTimeout(()=>{if(!running)return;let need=weapons[gun].max-ammo[gun].mag,take=Math.min(need,ammo[gun].reserve);ammo[gun].mag+=take;ammo[gun].reserve-=take;player.reloading=false},650)}
+function jump(){if(player.z===0){player.z=1;player.vy=560}}
+function shoot(now){
+ if(player.reloading||now-player.lastShot<weapons[gun].rate)return;
+ if(ammo[gun].mag<=0){reload();return}
+ ammo[gun].mag--;player.lastShot=now;
+ const a=Math.atan2(mouse.y-H/2,mouse.x-W/2)+rnd(-.035,.035),s=weapons[gun].speed;
+ bullets.push({x:player.x+Math.cos(a)*20,y:player.y+Math.sin(a)*20,vx:Math.cos(a)*s*60,vy:Math.sin(a)*s*60,life:900,enemy:false,dmg:weapons[gun].damage});
+ particles.push(...spark(player.x+Math.cos(a)*20,player.y+Math.sin(a)*20,weapons[gun].color,5));shake=2;
+}
+
+function enemyShoot(e){
+ let a=Math.atan2(player.y-e.y,player.x-e.x)+rnd(-.08,.08);
+ bullets.push({x:e.x,y:e.y,vx:Math.cos(a)*470,vy:Math.sin(a)*470,life:1500,enemy:true,dmg:12});
+}
+function damagePlayer(d){
+ if(player.invuln>0)return;
+ let absorb=Math.min(player.armor,d*.55);player.armor-=absorb;d-=absorb;player.hp-=d;player.invuln=.18;
+ document.getElementById('damage').style.opacity=.65;setTimeout(()=>document.getElementById('damage').style.opacity=0,100);
+ if(player.hp<=0)end(false);
+}
+function killEnemy(e){
+ e.dead=true;kills++;loot.push({x:e.x,y:e.y,type:Math.random()<.35?'med':(Math.random()<.5?'ammo':'armor'),taken:false});
+ feed.unshift('💀 Enemy eliminated');feed=feed.slice(0,5);show('ELIMINATION +1',600);shake=7;
+ if(kills===enemies.length)end(true);
+}
+function pickup(){
+ let nearest=loot.filter(l=>!l.taken&&dist(l,player)<65).sort((a,b)=>dist(a,player)-dist(b,player))[0];if(!nearest)return;
+ nearest.taken=true;
+ if(nearest.type==='ammo'){ammo[gun].reserve+=30;show('+30 AMMO',700)}
+ if(nearest.type==='med'){player.hp=clamp(player.hp+35,0,100);show('+35 HP',700)}
+ if(nearest.type==='armor'){player.armor=clamp(player.armor+30,0,100);show('+30 ARMOR',700)}
+ if(nearest.type==='smg'){ammo.smg.reserve+=45;switchGun('smg');show('SMG LOOTED',700)}
+ if(nearest.type==='rifle'){ammo.rifle.reserve+=45;switchGun('rifle');show('RIFLE LOOTED',700)}
+}
+function update(dt,now){
+ let dx=(keys.KeyD?1:0)-(keys.KeyA?1:0),dy=(keys.KeyS?1:0)-(keys.KeyW?1:0),len=Math.hypot(dx,dy)||1;
+ let sp=player.speed*(keys.ShiftLeft||keys.ShiftRight?1.45:1);
+ let nx=player.x+dx/len*sp*dt,ny=player.y+dy/len*sp*dt;
+ if(free(nx,player.y,player.r))player.x=nx;if(free(player.x,ny,player.r))player.y=ny;
+ player.angle=Math.atan2(mouse.y-H/2,mouse.x-W/2);
+ if(player.z>0){player.z+=player.vy*dt/500;player.vy-=1250*dt;if(player.z<=0){player.z=0;player.vy=0}}
+ player.invuln=Math.max(0,player.invuln-dt);
+ if(mouse.down)shoot(now);
+ zone.t+=dt;if(zone.t>zone.duration)zone.t=zone.duration;
+ zone.r=zone.start-(zone.start-zone.end)*(zone.t/zone.duration);
+ if(dist(player,zone)>zone.r){damagePlayer(8*dt)}
+ enemies.forEach(e=>{
+  if(e.dead)return;let d=dist(e,player),a=Math.atan2(player.y-e.y,player.x-e.x);e.angle=a;
+  if(d<620){let speed=e.speed;if(d>220){let nx=e.x+Math.cos(a)*speed*dt,ny=e.y+Math.sin(a)*speed*dt;if(free(nx,ny,18)){e.x=nx;e.y=ny}}
+   else {e.x+=Math.cos(a+Math.PI/2)*e.strafe*35*dt}
+   if(now-e.last>700+Math.random()*500){enemyShoot(e);e.last=now}
+  } else {e.x+=Math.cos(e.angle)*15*dt;e.y+=Math.sin(e.angle)*15*dt}
+  if(dist(e,zone)>zone.r)e.hp-=4*dt;
+  if(e.hp<=0)killEnemy(e);
+ });
+ bullets.forEach(b=>{b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt*1000});
+ bullets=bullets.filter(b=>b.life>0&&b.x>0&&b.y>0&&b.x<world.w&&b.y<world.h);
+ bullets.forEach(b=>{
+  if(b.enemy){if(dist(b,player)<player.r+5){b.life=0;damagePlayer(b.dmg)}}
+  else enemies.forEach(e=>{if(!e.dead&&dist(b,e)<e.r+5){b.life=0;e.hp-=b.dmg;particles.push(...spark(b.x,b.y,'#ff5252',8));if(e.hp<=0)killEnemy(e)}})
+ });
+ loot=loot.filter(l=>!l.taken);
+ particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt});
+ particles=particles.filter(p=>p.life>0);
+ cam.x=clamp(player.x-W/2,0,Math.max(0,world.w-W));cam.y=clamp(player.y-H/2,0,Math.max(0,world.h-H));
+ shake*=.88;
+ updateUI();
+}
+function spark(x,y,color,n){return Array.from({length:n},()=>({x,y,vx:rnd(-120,120),vy:rnd(-120,120),life:rnd(.15,.4),color}))}
+
+function draw(){
+ ctx.save();ctx.clearRect(0,0,W,H);ctx.translate(-cam.x,-cam.y);
+ ctx.fillStyle='#31472d';ctx.fillRect(0,0,world.w,world.h);
+ // ground grid
+ ctx.strokeStyle='#ffffff08';ctx.lineWidth=1;
+ for(let x=0;x<world.w;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,world.h);ctx.stroke()}
+ for(let y=0;y<world.h;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(world.w,y);ctx.stroke()}
+ obstacles.forEach(o=>{ctx.fillStyle='#28302a';ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeStyle='#71806f';ctx.strokeRect(o.x,o.y,o.w,o.h);
+   ctx.fillStyle='#495747';for(let x=o.x+15;x<o.x+o.w;x+=35)ctx.fillRect(x,o.y+12,20,12)});
+ // zone outside
+ ctx.save();ctx.fillStyle='rgba(50,110,210,.25)';ctx.beginPath();ctx.rect(0,0,world.w,world.h);ctx.arc(zone.x,zone.y,zone.r,0,Math.PI*2,true);ctx.fill('evenodd');ctx.restore();
+ ctx.strokeStyle='#79c8ff';ctx.lineWidth=6;ctx.beginPath();ctx.arc(zone.x,zone.y,zone.r,0,Math.PI*2);ctx.stroke();
+ loot.forEach(l=>drawLoot(l));enemies.forEach(e=>{if(!e.dead)drawEnemy(e)});
+ bullets.forEach(b=>{ctx.fillStyle=b.enemy?'#ff5959':weapons[gun].color;ctx.beginPath();ctx.arc(b.x,b.y,3,0,7);ctx.fill()});
+ // player shadow
+ ctx.fillStyle='#0007';ctx.beginPath();ctx.ellipse(player.x,player.y+10,23,10,0,0,7);ctx.fill();
+ let pz=player.z*18;ctx.save();ctx.translate(player.x,player.y-pz);ctx.rotate(player.angle);
+ ctx.fillStyle='#6ee7ff';ctx.beginPath();ctx.arc(0,0,player.r,0,7);ctx.fill();ctx.fillStyle='#d7f9ff';ctx.fillRect(8,-4,28,8);ctx.restore();
+ particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life/.4);ctx.fillStyle=p.color;ctx.fillRect(p.x-2,p.y-2,4,4);ctx.globalAlpha=1});
+ ctx.restore();
+ // shake overlay transform isn't needed; camera shake via canvas offset avoided for clarity
+ drawMini();
+}
+function drawLoot(l){
+ const colors={ammo:'#ffd166',med:'#ff5c77',armor:'#7c9cff',smg:'#67e8f9',rifle:'#ff8fab'};
+ ctx.fillStyle=colors[l.type];ctx.beginPath();ctx.arc(l.x,l.y,10,0,7);ctx.fill();ctx.fillStyle='#111';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(l.type==='med'?'+':l.type==='armor'?'A':l.type==='ammo'?'•':'G',l.x,l.y)
+}
+function drawEnemy(e){
+ ctx.fillStyle='#ff4d5d';ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,7);ctx.fill();
+ ctx.strokeStyle='#222';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.x+Math.cos(e.angle)*25,e.y+Math.sin(e.angle)*25);ctx.stroke();
+ ctx.fillStyle='#111';ctx.fillRect(e.x-20,e.y-29,40,5);ctx.fillStyle='#55e56b';ctx.fillRect(e.x-20,e.y-29,40*(e.hp/e.max),5);
+}
+function drawMini(){
+ mx.clearRect(0,0,150,150);mx.fillStyle='#142018';mx.fillRect(0,0,150,150);
+ const sx=150/world.w,sy=150/world.h;mx.strokeStyle='#70bfff';mx.lineWidth=2;mx.beginPath();mx.arc(zone.x*sx,zone.y*sy,zone.r*sx,0,7);mx.stroke();
+ obstacles.forEach(o=>{mx.fillStyle='#435343';mx.fillRect(o.x*sx,o.y*sy,o.w*sx,o.h*sy)});
+ enemies.forEach(e=>{if(!e.dead){mx.fillStyle='#ff5260';mx.fillRect(e.x*sx-2,e.y*sy-2,4,4)}});
+ mx.fillStyle='#7ce7ff';mx.beginPath();mx.arc(player.x*sx,player.y*sy,4,0,7);mx.fill();
+}
+function updateUI(){
+ document.getElementById('hpText').textContent=Math.max(0,Math.ceil(player.hp));document.getElementById('hpBar').style.width=clamp(player.hp,0,100)+'%';
+ document.getElementById('armorText').textContent=Math.ceil(player.armor);document.getElementById('kills').textContent=kills;document.getElementById('left').textContent=enemies.length-kills;
+ document.getElementById('zoneText').textContent='🔵 Safe zone: '+Math.round(zone.r/zone.start*100)+'%';
+ document.getElementById('mag').textContent=ammo[gun].mag;document.getElementById('reserve').textContent=ammo[gun].reserve;document.getElementById('weapon').textContent=weapons[gun].name;
+ let n=loot.find(l=>!l.taken&&dist(l,player)<65);document.getElementById('pickup').style.opacity=n?1:0;
+ document.getElementById('feed').innerHTML=feed.map(x=>'<div>'+x+'</div>').join('');
+}
+function show(t,ms=1000){const el=document.getElementById('toast');el.textContent=t;el.style.opacity=1;clearTimeout(show.t);show.t=setTimeout(()=>el.style.opacity=0,ms)}
+function end(win){
+ running=false;document.getElementById('menu').classList.remove('hidden');document.querySelector('#menu h1').innerHTML=win?'🏆 <span>VICTORY</span>':'☠️ <span>GAME OVER</span>';
+ document.querySelector('#menu p').innerHTML=win?`You eliminated everyone! <b>${kills} kills</b>.`:`You were eliminated. <b>${kills} kills</b>.`;
+ document.getElementById('start').textContent='PLAY AGAIN';
+}
+function loop(now){if(!running)return;const dt=Math.min(.033,(now-last)/1000);last=now;update(dt,now);draw();requestAnimationFrame(loop)}
+</script>
+</body>
+</html>
