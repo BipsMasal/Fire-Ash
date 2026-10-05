@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Mini Battle Royale V4</title>
+<title>Mini Battle Royale V4.3 — Maps & Survival</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;color:#fff;font-family:Arial,Helvetica,sans-serif}
 body{user-select:none}
@@ -60,6 +60,13 @@ canvas,.joy,.mobileBtn{touch-action:none;-webkit-user-select:none;user-select:no
   #weapon{font-size:10px}.ammo{font-size:18px}
   #message{top:18%;font-size:18px}
 }
+
+#levelBadge{font-weight:800;color:#ffe082}
+#levelProgress{font-size:12px;color:#aeb8b2;margin-top:3px}
+.levelCard{margin:14px auto 0;padding:12px;border-radius:12px;background:#ffffff08;border:1px solid #ffffff12}
+.levelCard strong{color:#ffe082}
+
+.mapbox{margin:14px 0 10px}.mapbox h3{margin:0 0 8px;font-size:14px;color:#9fd6ff}.maps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mapcard{padding:10px 7px;border:1px solid #ffffff20;border-radius:10px;background:#ffffff08;cursor:pointer;text-align:center;font-weight:700;font-size:12px;transition:.15s}.mapcard:hover,.mapcard.selected{border-color:#72d6ff;background:#72d6ff18;transform:translateY(-1px)}.mapcard small{display:block;color:#aaa;font-weight:400;margin-top:4px;font-size:10px}.maprandom{grid-column:1/-1}.mapname{color:#9fd6ff;font-weight:800}.featureline{font-size:11px;color:#aaa;margin-top:7px}@media(max-width:700px){.maps{grid-template-columns:repeat(2,1fr)}.mapbox{margin:10px 0}.mapcard{padding:9px 5px}}
 </style>
 </head>
 <body>
@@ -70,7 +77,7 @@ canvas,.joy,.mobileBtn{touch-action:none;-webkit-user-select:none;user-select:no
     <div class="panel stats">
       <b>❤️ <span id="hpText">100</span> HP</b>
       <div class="bar"><div id="hpBar" class="hp"></div></div>
-      <div style="margin-top:7px">🛡️ <span id="armorText">0</span> &nbsp; 💀 <span id="kills">0</span> &nbsp; 👥 <span id="left">12</span></div>
+      <div style="margin-top:7px">🛡️ <span id="armorText">0</span> &nbsp; 💀 <span id="kills">0</span> &nbsp; 👥 <span id="left">5</span></div><div id="levelProgress"><span id="levelBadge">LEVEL 1</span> • <span id="levelGoal">5 enemies</span></div>
       <div id="zoneText">🔵 Safe zone: 100%</div>
     </div>
     <div class="panel">
@@ -102,8 +109,19 @@ canvas,.joy,.mobileBtn{touch-action:none;-webkit-user-select:none;user-select:no
   <div class="card">
     <h1>MINI <span>BATTLE ROYALE</span></h1>
     <p>Survive the shrinking zone, loot weapons and supplies, and eliminate every enemy.</p>
-    <button id="start">DROP IN</button>
-    <p class="tip">V4 • Pure HTML + CSS + JavaScript • No external libraries</p>
+    <div class="levelCard">Current: <strong id="menuLevel">LEVEL 1</strong><br><span id="menuGoal">Eliminate 5 enemies</span></div><br><button id="start">DROP IN</button>
+    <div class="mapbox">
+<h3>🗺️ CHOOSE MAP</h3>
+<div class="maps" id="maps">
+<div class="mapcard selected" data-map="forest">🌲 FOREST<small>Balanced • more medkits</small></div>
+<div class="mapcard" data-map="city">🏙️ CITY<small>Heavy cover • tight fights</small></div>
+<div class="mapcard" data-map="desert">🏜️ DESERT<small>Open • more ammo</small></div>
+<div class="mapcard" data-map="snow">❄️ SNOW BASE<small>Armor • warehouses</small></div>
+<div class="mapcard maprandom" data-map="random">🎲 RANDOM MAP</div>
+</div>
+<div class="featureline">Selected: <span id="selectedMap" class="mapname">Forest</span> • Maps change terrain, cover, loot and combat feel.</div>
+</div>
+<p id="progressTip" class="tip">V4.3 • 10 levels • 4 maps • Progress is saved automatically</p>
   </div>
 </div>
 </div>
@@ -113,6 +131,20 @@ const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),mini=docum
 let W,H,keys={},mouse={x:0,y:0,down:false},running=false,last=0,shake=0,particles=[],bullets=[],enemies=[],loot=[],feed=[];
 let touchMove={active:false,id:null,x:0,y:0},touchAim={active:false,id:null,x:0,y:0},touchFire=false,touchSprint=false;
 const world={w:2600,h:1800};
+const LEVELS=[
+ {enemies:5,hp:70,speed:80,zone:830,loot:14},
+ {enemies:8,hp:75,speed:88,zone:790,loot:18},
+ {enemies:10,hp:82,speed:96,zone:750,loot:21},
+ {enemies:12,hp:90,speed:104,zone:710,loot:24},
+ {enemies:15,hp:98,speed:112,zone:670,loot:27},
+ {enemies:18,hp:108,speed:120,zone:630,loot:30},
+ {enemies:20,hp:118,speed:128,zone:590,loot:33},
+ {enemies:25,hp:130,speed:138,zone:550,loot:36},
+ {enemies:30,hp:145,speed:148,zone:510,loot:40},
+ {enemies:35,hp:175,speed:158,zone:470,loot:45}
+];
+let currentLevel=Math.max(1,Math.min(10,Number(localStorage.getItem('miniBRLevel')||1)));
+let xp=Number(localStorage.getItem('miniBRXP')||0),coins=Number(localStorage.getItem('miniBRCoins')||0);
 let cam={x:0,y:0},zone={x:1300,y:900,r:830,start:830,end:120,t:0,duration:150},kills=0;
 const weapons={
  pistol:{name:'PISTOL',damage:25,rate:300,mag:12,max:12,reserve:48,speed:10,color:'#ffd166'},
@@ -121,11 +153,17 @@ const weapons={
 };
 let gun='pistol', ammo={},player;
 for(const k in weapons) ammo[k]={mag:weapons[k].mag,reserve:weapons[k].reserve};
-const obstacles=[
- {x:380,y:300,w:280,h:170},{x:830,y:280,w:330,h:170},{x:1500,y:300,w:350,h:190},
- {x:420,y:1050,w:330,h:220},{x:980,y:1150,w:300,h:180},{x:1740,y:1040,w:350,h:230},
- {x:1150,y:620,w:260,h:140}
-];
+let selectedMap=localStorage.getItem('miniBRMap')||'forest';
+const MAPS={
+ forest:{name:'Forest',emoji:'🌲',bg:'#31472d',grid:'#ffffff08',cover:'#28302a',accent:'#71806f',loot:{ammo:1,med:1.35,armor:1,smg:1,rifle:1},zone:1,obstacles:[{x:260,y:240,w:300,h:170},{x:820,y:260,w:330,h:150},{x:1510,y:250,w:330,h:190},{x:390,y:1030,w:350,h:210},{x:960,y:1160,w:300,h:170},{x:1740,y:1020,w:360,h:230},{x:1160,y:620,w:260,h:140}]},
+ city:{name:'City',emoji:'🏙️',bg:'#2b3035',grid:'#ffffff10',cover:'#20252a',accent:'#69747d',loot:{ammo:1,med:.9,armor:1.1,smg:1.25,rifle:1.1},zone:.96,obstacles:[{x:180,y:180,w:430,h:250},{x:760,y:170,w:390,h:300},{x:1360,y:160,w:470,h:240},{x:2100,y:260,w:300,h:390},{x:250,y:920,w:420,h:280},{x:850,y:1030,w:470,h:320},{x:1530,y:930,w:360,h:300},{x:2050,y:1050,w:380,h:260},{x:1130,y:610,w:400,h:230}]},
+ desert:{name:'Desert',emoji:'🏜️',bg:'#a98b58',grid:'#fff8e008',cover:'#806b45',accent:'#c9ad78',loot:{ammo:1.45,med:.75,armor:.8,smg:1.1,rifle:1.35},zone:1.05,obstacles:[{x:380,y:330,w:230,h:130},{x:980,y:260,w:260,h:140},{x:1690,y:340,w:280,h:150},{x:520,y:1060,w:260,h:150},{x:1100,y:1180,w:260,h:130},{x:1830,y:1060,w:300,h:150},{x:1250,y:650,w:180,h:120}]},
+ snow:{name:'Snow Base',emoji:'❄️',bg:'#b9d0d8',grid:'#ffffff18',cover:'#71838a',accent:'#dcecf0',loot:{ammo:1,med:.9,armor:1.45,smg:1,rifle:1.2},zone:.98,obstacles:[{x:260,y:220,w:430,h:210},{x:820,y:230,w:360,h:260},{x:1450,y:180,w:470,h:230},{x:2100,y:300,w:270,h:350},{x:260,y:1040,w:400,h:230},{x:900,y:1100,w:430,h:260},{x:1540,y:1000,w:400,h:280},{x:1140,y:620,w:340,h:190}] }
+};
+let obstacles=[];
+function applyMap(){let id=selectedMap==='random'?['forest','city','desert','snow'][Math.floor(Math.random()*4)]:selectedMap;if(!MAPS[id])id='forest';selectedMap=id;obstacles=MAPS[id].obstacles.map(o=>({...o}));document.querySelectorAll('.mapcard').forEach(c=>c.classList.toggle('selected',c.dataset.map===selectedMap));const m=MAPS[selectedMap];document.getElementById('selectedMap').textContent=m.emoji+' '+m.name;localStorage.setItem('miniBRMap',selectedMap)}
+applyMap();
+document.querySelectorAll('.mapcard').forEach(c=>c.addEventListener('click',()=>{selectedMap=c.dataset.map;applyMap()}));
 
 function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
 addEventListener('resize',resize);resize();
@@ -140,7 +178,7 @@ function rnd(a,b){return Math.random()*(b-a)+a}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function free(x,y,r=20){return x>r&&y>r&&x<world.w-r&&y<world.h-r&&!obstacles.some(o=>x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r)}
-function spawnFree(){let x,y;do{x=rnd(100,world.w-100);y=rnd(100,world.h-100)}while(!free(x,y,30)||dist({x,y},player)>400);return{x,y}}
+function spawnFree(){let x,y,tries=0;do{x=rnd(100,world.w-100);y=rnd(100,world.h-100);tries++;}while((!free(x,y,30)||dist({x,y},player)>400)&&tries<500);return{x,y}}
 
 
 function setStick(stick,dx,dy){
@@ -192,13 +230,29 @@ function setupMobileControls(){
 }
 setupMobileControls();
 
+function pickLootType(){const w=MAPS[selectedMap].loot,types=['ammo','med','armor','smg','rifle'],weights=types.map(t=>w[t]||1),sum=weights.reduce((a,b)=>a+b,0);let r=Math.random()*sum;for(let i=0;i<types.length;i++){r-=weights[i];if(r<=0)return types[i]}return 'ammo'}
 function start(){
- document.getElementById('menu').classList.add('hidden');running=true;kills=0;zone.t=0;feed=[];particles=[];bullets=[];loot=[];enemies=[];
+ document.getElementById('menu').classList.add('hidden');
+ running=true;kills=0;zone.t=0;feed=[];particles=[];bullets=[];loot=[];enemies=[];
+ const cfg=LEVELS[currentLevel-1];
+ const map=MAPS[selectedMap];zone.r=Math.round(cfg.zone*map.zone);zone.start=zone.r;zone.end=Math.max(170,zone.r-360);zone.x=1300;zone.y=900;
  player={x:1300,y:900,r:18,hp:100,armor:0,speed:235,angle:0,z:0,vy:0,lastShot:0,reloading:false,invuln:0};
  for(const k in weapons)ammo[k]={mag:weapons[k].mag,reserve:weapons[k].reserve};
- for(let i=0;i<12;i++){let p=spawnFree();enemies.push({x:p.x,y:p.y,r:17,hp:80,max:80,speed:rnd(70,105),last:0,angle:0,dead:false,strafe:rnd(-1,1),shoot:rnd(0,2)})}
- for(let i=0;i<30;i++){let p={x:rnd(80,world.w-80),y:rnd(80,world.h-80)};if(free(p.x,p.y,15))loot.push({x:p.x,y:p.y,type:['ammo','med','armor','smg','rifle'][Math.floor(Math.random()*5)],taken:false})}
- show('DROP IN! ELIMINATE ALL ENEMIES',1800);last=performance.now();requestAnimationFrame(loop)
+ for(let i=0;i<cfg.enemies;i++){
+   let p=spawnFree();
+   enemies.push({
+     x:p.x,y:p.y,r:17,hp:cfg.hp,max:cfg.hp,speed:cfg.speed,
+     last:0,angle:0,dead:false,strafe:rnd(-1,1),shoot:rnd(0,2)
+   });
+ }
+ const lootCount=Math.round(cfg.loot*(selectedMap==='city'?1.05:selectedMap==='desert'?1.1:1));
+ for(let i=0;i<lootCount;i++){
+   let p={x:rnd(80,world.w-80),y:rnd(80,world.h-80)};
+   if(free(p.x,p.y,15))loot.push({x:p.x,y:p.y,type:pickLootType(),taken:false});
+ }
+ updateMenu();
+ show(MAPS[selectedMap].emoji+' '+MAPS[selectedMap].name+' • LEVEL '+currentLevel,1800);
+ last=performance.now();requestAnimationFrame(loop);
 }
 
 function switchGun(k){if(ammo[k]){gun=k;player.reloading=false;show(weapons[k].name,500)}}
@@ -275,12 +329,12 @@ function spark(x,y,color,n){return Array.from({length:n},()=>({x,y,vx:rnd(-120,1
 
 function draw(){
  ctx.save();ctx.clearRect(0,0,W,H);ctx.translate(-cam.x,-cam.y);
- ctx.fillStyle='#31472d';ctx.fillRect(0,0,world.w,world.h);
+ const map=MAPS[selectedMap];ctx.fillStyle=map.bg;ctx.fillRect(0,0,world.w,world.h);
  // ground grid
- ctx.strokeStyle='#ffffff08';ctx.lineWidth=1;
+ ctx.strokeStyle=map.grid;ctx.lineWidth=1;
  for(let x=0;x<world.w;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,world.h);ctx.stroke()}
  for(let y=0;y<world.h;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(world.w,y);ctx.stroke()}
- obstacles.forEach(o=>{ctx.fillStyle='#28302a';ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeStyle='#71806f';ctx.strokeRect(o.x,o.y,o.w,o.h);
+ obstacles.forEach(o=>{ctx.fillStyle=map.cover;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeStyle=map.accent;ctx.strokeRect(o.x,o.y,o.w,o.h);
    ctx.fillStyle='#495747';for(let x=o.x+15;x<o.x+o.w;x+=35)ctx.fillRect(x,o.y+12,20,12)});
  // zone outside
  ctx.save();ctx.fillStyle='rgba(50,110,210,.25)';ctx.beginPath();ctx.rect(0,0,world.w,world.h);ctx.arc(zone.x,zone.y,zone.r,0,Math.PI*2,true);ctx.fill('evenodd');ctx.restore();
@@ -306,25 +360,63 @@ function drawEnemy(e){
  ctx.fillStyle='#111';ctx.fillRect(e.x-20,e.y-29,40,5);ctx.fillStyle='#55e56b';ctx.fillRect(e.x-20,e.y-29,40*(e.hp/e.max),5);
 }
 function drawMini(){
- mx.clearRect(0,0,150,150);mx.fillStyle='#142018';mx.fillRect(0,0,150,150);
+ const map=MAPS[selectedMap];mx.clearRect(0,0,150,150);mx.fillStyle=map.bg;mx.fillRect(0,0,150,150);
  const sx=150/world.w,sy=150/world.h;mx.strokeStyle='#70bfff';mx.lineWidth=2;mx.beginPath();mx.arc(zone.x*sx,zone.y*sy,zone.r*sx,0,7);mx.stroke();
- obstacles.forEach(o=>{mx.fillStyle='#435343';mx.fillRect(o.x*sx,o.y*sy,o.w*sx,o.h*sy)});
+ obstacles.forEach(o=>{mx.fillStyle=map.cover;mx.fillRect(o.x*sx,o.y*sy,o.w*sx,o.h*sy)});
  enemies.forEach(e=>{if(!e.dead){mx.fillStyle='#ff5260';mx.fillRect(e.x*sx-2,e.y*sy-2,4,4)}});
  mx.fillStyle='#7ce7ff';mx.beginPath();mx.arc(player.x*sx,player.y*sy,4,0,7);mx.fill();
 }
 function updateUI(){
  document.getElementById('hpText').textContent=Math.max(0,Math.ceil(player.hp));document.getElementById('hpBar').style.width=clamp(player.hp,0,100)+'%';
- document.getElementById('armorText').textContent=Math.ceil(player.armor);document.getElementById('kills').textContent=kills;document.getElementById('left').textContent=enemies.length-kills;
+ document.getElementById('armorText').textContent=Math.ceil(player.armor);document.getElementById('kills').textContent=kills;
  document.getElementById('zoneText').textContent='🔵 Safe zone: '+Math.round(zone.r/zone.start*100)+'%';
- document.getElementById('mag').textContent=ammo[gun].mag;document.getElementById('reserve').textContent=ammo[gun].reserve;document.getElementById('weapon').textContent=weapons[gun].name;
+ const cfg=LEVELS[currentLevel-1];
+ document.getElementById('levelBadge').textContent='LEVEL '+currentLevel;
+ document.getElementById('levelGoal').textContent=`${cfg.enemies} enemies`;
+ document.getElementById('left').textContent=Math.max(0,enemies.length-kills);
+ document.getElementById('mag').textContent=ammo[gun].mag;document.getElementById('reserve').textContent=ammo[gun].reserve;document.getElementById('weapon').textContent=weapons[gun].name+' • '+MAPS[selectedMap].name;
  let n=loot.find(l=>!l.taken&&dist(l,player)<65);document.getElementById('pickup').style.opacity=n?1:0;
  document.getElementById('feed').innerHTML=feed.map(x=>'<div>'+x+'</div>').join('');
 }
 function show(t,ms=1000){const el=document.getElementById('toast');el.textContent=t;el.style.opacity=1;clearTimeout(show.t);show.t=setTimeout(()=>el.style.opacity=0,ms)}
+
+function updateMenu(){
+ const cfg=LEVELS[currentLevel-1];
+ document.getElementById('menuLevel').textContent='LEVEL '+currentLevel;
+ document.getElementById('menuGoal').textContent=`Eliminate ${cfg.enemies} enemies`;
+}
+function saveProgress(){
+ localStorage.setItem('miniBRLevel',String(currentLevel));
+ localStorage.setItem('miniBRXP',String(xp));
+ localStorage.setItem('miniBRCoins',String(coins));
+}
+function completeLevel(){
+ running=false;
+ const gainedXP=100*currentLevel, gainedCoins=50*currentLevel;
+ xp+=gainedXP;coins+=gainedCoins;
+ if(currentLevel<10) currentLevel++;
+ saveProgress();updateMenu();
+ document.getElementById('menu').classList.remove('hidden');
+ document.querySelector('#menu h1').innerHTML='🏆 <span>LEVEL COMPLETE</span>';
+ document.querySelector('#menu p').innerHTML=`You cleared Level ${currentLevel-1}!<br>⭐ +${gainedXP} XP &nbsp; 🪙 +${gainedCoins} coins`;
+ document.getElementById('start').textContent=currentLevel>10?'FINISHED':'NEXT LEVEL';
+ if(currentLevel>10){
+   currentLevel=10;saveProgress();
+   document.getElementById('start').textContent='PLAY LEVEL 10 AGAIN';
+ }
+}
+
 function end(win){
- running=false;document.getElementById('menu').classList.remove('hidden');document.querySelector('#menu h1').innerHTML=win?'🏆 <span>VICTORY</span>':'☠️ <span>GAME OVER</span>';
- document.querySelector('#menu p').innerHTML=win?`You eliminated everyone! <b>${kills} kills</b>.`:`You were eliminated. <b>${kills} kills</b>.`;
- document.getElementById('start').textContent='PLAY AGAIN';
+ running=false;
+ document.getElementById('menu').classList.remove('hidden');
+ if(win){
+   completeLevel();
+   return;
+ }
+ document.querySelector('#menu h1').innerHTML='☠️ <span>GAME OVER</span>';
+ document.querySelector('#menu p').innerHTML=`You were eliminated on Level ${currentLevel}.<br>💀 ${kills} kills`;
+ document.getElementById('start').textContent='RETRY LEVEL '+currentLevel;
+ updateMenu();
 }
 function loop(now){if(!running)return;const dt=Math.min(.033,(now-last)/1000);last=now;update(dt,now);draw();requestAnimationFrame(loop)}
 </script>
