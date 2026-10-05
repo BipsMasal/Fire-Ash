@@ -34,6 +34,32 @@ button:hover{filter:brightness(1.1)}.hidden{display:none!important}
 .tip{font-size:12px!important;color:#7f8b84!important;margin-top:18px}
 #toast{position:absolute;left:50%;top:12%;transform:translateX(-50%);font-weight:800;text-shadow:0 2px 8px #000;opacity:0}
 @media(max-width:700px){.top{padding:8px}.stats{min-width:170px}.bar{width:140px}.ammo{font-size:20px}#mini{width:110px;height:110px}.card h1{font-size:32px}}
+canvas,.joy,.mobileBtn{touch-action:none;-webkit-user-select:none;user-select:none}
+
+#mobileControls{display:none;position:absolute;inset:0;pointer-events:none;z-index:5}
+.joy{position:absolute;width:118px;height:118px;border-radius:50%;background:#ffffff18;border:2px solid #ffffff35;pointer-events:auto;touch-action:none}
+.joy .stick{position:absolute;width:50px;height:50px;border-radius:50%;left:32px;top:32px;background:#ffffff55;border:2px solid #ffffff80}
+#moveJoy{left:22px;bottom:24px}
+#aimJoy{right:22px;bottom:24px}
+.mobileBtn{position:absolute;width:58px;height:58px;border-radius:50%;border:1px solid #ffffff55;background:#111b18cc;color:#fff;font-size:12px;font-weight:800;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px #0007}
+#fireBtn{right:158px;bottom:38px;width:76px;height:76px;background:#b8323fcc;font-size:15px}
+#reloadBtn{right:125px;bottom:125px}
+#lootBtn{right:55px;bottom:140px}
+#jumpBtn{right:55px;bottom:215px}
+#sprintBtn{left:150px;bottom:48px}
+#gunBtn{left:155px;bottom:120px}
+@media (pointer:coarse){
+  #mobileControls{display:block}
+  #controls{display:none}
+  #cross{opacity:.55}
+  canvas{cursor:default}
+}
+@media(max-width:700px){
+  .top{padding:7px}.stats{min-width:150px;padding:7px 9px;font-size:11px}
+  .bar{width:110px;height:8px}#mini{width:92px;height:92px}
+  #weapon{font-size:10px}.ammo{font-size:18px}
+  #message{top:18%;font-size:18px}
+}
 </style>
 </head>
 <body>
@@ -60,6 +86,17 @@ button:hover{filter:brightness(1.1)}.hidden{display:none!important}
     <div><b>Mouse</b> Aim/Shoot &nbsp; <b>R</b> Reload &nbsp; <b>1/2/3</b> Weapon</div>
     <div><b>E</b> Loot &nbsp; <b>SPACE</b> Jump/evade</div>
   </div>
+
+  <div id="mobileControls">
+    <div id="moveJoy" class="joy"><div class="stick"></div></div>
+    <div id="aimJoy" class="joy"><div class="stick"></div></div>
+    <div id="fireBtn" class="mobileBtn">FIRE</div>
+    <div id="reloadBtn" class="mobileBtn">RELOAD</div>
+    <div id="lootBtn" class="mobileBtn">LOOT</div>
+    <div id="jumpBtn" class="mobileBtn">JUMP</div>
+    <div id="sprintBtn" class="mobileBtn">SPRINT</div>
+    <div id="gunBtn" class="mobileBtn">GUN</div>
+  </div>
 </div>
 <div id="menu">
   <div class="card">
@@ -74,6 +111,7 @@ button:hover{filter:brightness(1.1)}.hidden{display:none!important}
 <script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),mini=document.getElementById('mini'),mx=mini.getContext('2d');
 let W,H,keys={},mouse={x:0,y:0,down:false},running=false,last=0,shake=0,particles=[],bullets=[],enemies=[],loot=[],feed=[];
+let touchMove={active:false,id:null,x:0,y:0},touchAim={active:false,id:null,x:0,y:0},touchFire=false,touchSprint=false;
 const world={w:2600,h:1800};
 let cam={x:0,y:0},zone={x:1300,y:900,r:830,start:830,end:120,t:0,duration:150},kills=0;
 const weapons={
@@ -104,6 +142,56 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function free(x,y,r=20){return x>r&&y>r&&x<world.w-r&&y<world.h-r&&!obstacles.some(o=>x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r)}
 function spawnFree(){let x,y;do{x=rnd(100,world.w-100);y=rnd(100,world.h-100)}while(!free(x,y,30)||dist({x,y},player)>400);return{x,y}}
 
+
+function setStick(stick,dx,dy){
+  const max=34,len=Math.hypot(dx,dy)||1,m=Math.min(max,len);
+  stick.style.transform=`translate(${dx/len*m}px,${dy/len*m}px)`;
+}
+function resetStick(stick){stick.style.transform='translate(0,0)';}
+function setupJoystick(id,state,callback){
+  const el=document.getElementById(id),stick=el.querySelector('.stick');
+  el.addEventListener('pointerdown',e=>{
+    e.preventDefault();el.setPointerCapture(e.pointerId);state.active=true;state.id=e.pointerId;
+    const r=el.getBoundingClientRect();state.x=e.clientX-(r.left+r.width/2);state.y=e.clientY-(r.top+r.height/2);callback(state.x,state.y,stick);
+  });
+  el.addEventListener('pointermove',e=>{
+    if(!state.active||e.pointerId!==state.id)return;
+    const r=el.getBoundingClientRect();state.x=e.clientX-(r.left+r.width/2);state.y=e.clientY-(r.top+r.height/2);callback(state.x,state.y,stick);
+  });
+  const end=e=>{
+    if(e.pointerId!==state.id)return;
+    state.active=false;state.id=null;state.x=0;state.y=0;callback(0,0,stick);resetStick(stick);
+  };
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+}
+function setupMobileControls(){
+  setupJoystick('moveJoy',touchMove,(x,y,stick)=>{
+    const max=40;
+    keys.KeyA=x<-12;keys.KeyD=x>12;keys.KeyW=y<-12;keys.KeyS=y>12;
+    setStick(stick,x,y);
+  });
+  setupJoystick('aimJoy',touchAim,(x,y,stick)=>{
+    if(Math.hypot(x,y)>12) player && (player.angle=Math.atan2(y,x));
+    setStick(stick,x,y);
+  });
+  const hold=(id,on,off)=>{
+    const el=document.getElementById(id);
+    el.addEventListener('pointerdown',e=>{e.preventDefault();on();});
+    el.addEventListener('pointerup',e=>{e.preventDefault();if(off)off();});
+    el.addEventListener('pointercancel',()=>{if(off)off();});
+  };
+  hold('fireBtn',()=>touchFire=true,()=>touchFire=false);
+  hold('sprintBtn',()=>touchSprint=true,()=>touchSprint=false);
+  document.getElementById('reloadBtn').addEventListener('pointerdown',e=>{e.preventDefault();if(running)reload();});
+  document.getElementById('lootBtn').addEventListener('pointerdown',e=>{e.preventDefault();if(running)pickup();});
+  document.getElementById('jumpBtn').addEventListener('pointerdown',e=>{e.preventDefault();if(running)jump();});
+  document.getElementById('gunBtn').addEventListener('pointerdown',e=>{
+    e.preventDefault();if(!running)return;
+    const order=['pistol','smg','rifle'],i=order.indexOf(gun);switchGun(order[(i+1)%order.length]);
+  });
+}
+setupMobileControls();
+
 function start(){
  document.getElementById('menu').classList.add('hidden');running=true;kills=0;zone.t=0;feed=[];particles=[];bullets=[];loot=[];enemies=[];
  player={x:1300,y:900,r:18,hp:100,armor:0,speed:235,angle:0,z:0,vy:0,lastShot:0,reloading:false,invuln:0};
@@ -120,7 +208,7 @@ function shoot(now){
  if(player.reloading||now-player.lastShot<weapons[gun].rate)return;
  if(ammo[gun].mag<=0){reload();return}
  ammo[gun].mag--;player.lastShot=now;
- const a=Math.atan2(mouse.y-H/2,mouse.x-W/2)+rnd(-.035,.035),s=weapons[gun].speed;
+ const a=player.angle+rnd(-.035,.035),s=weapons[gun].speed;
  bullets.push({x:player.x+Math.cos(a)*20,y:player.y+Math.sin(a)*20,vx:Math.cos(a)*s*60,vy:Math.sin(a)*s*60,life:900,enemy:false,dmg:weapons[gun].damage});
  particles.push(...spark(player.x+Math.cos(a)*20,player.y+Math.sin(a)*20,weapons[gun].color,5));shake=2;
 }
@@ -151,13 +239,13 @@ function pickup(){
 }
 function update(dt,now){
  let dx=(keys.KeyD?1:0)-(keys.KeyA?1:0),dy=(keys.KeyS?1:0)-(keys.KeyW?1:0),len=Math.hypot(dx,dy)||1;
- let sp=player.speed*(keys.ShiftLeft||keys.ShiftRight?1.45:1);
+ let sp=player.speed*((keys.ShiftLeft||keys.ShiftRight||touchSprint)?1.45:1);
  let nx=player.x+dx/len*sp*dt,ny=player.y+dy/len*sp*dt;
  if(free(nx,player.y,player.r))player.x=nx;if(free(player.x,ny,player.r))player.y=ny;
- player.angle=Math.atan2(mouse.y-H/2,mouse.x-W/2);
+ if(!(touchAim.active&&Math.hypot(touchAim.x,touchAim.y)>12))player.angle=Math.atan2(mouse.y-H/2,mouse.x-W/2);
  if(player.z>0){player.z+=player.vy*dt/500;player.vy-=1250*dt;if(player.z<=0){player.z=0;player.vy=0}}
  player.invuln=Math.max(0,player.invuln-dt);
- if(mouse.down)shoot(now);
+ if(mouse.down||touchFire)shoot(now);
  zone.t+=dt;if(zone.t>zone.duration)zone.t=zone.duration;
  zone.r=zone.start-(zone.start-zone.end)*(zone.t/zone.duration);
  if(dist(player,zone)>zone.r){damagePlayer(8*dt)}
