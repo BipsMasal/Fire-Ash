@@ -1,9 +1,12 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width,initial-scale=1.0,user-scalable=no">
+      content="width=device-width, initial-scale=1.0,
+      maximum-scale=1.0, user-scalable=no,
+      viewport-fit=cover">
 
 <title>Mini Battle Royale V5</title>
 
@@ -14,25 +17,41 @@
   padding:0;
   user-select:none;
   -webkit-user-select:none;
+  -webkit-touch-callout:none;
 }
 
+html,
 body{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
   background:#05070a;
   color:white;
   font-family:Arial,Helvetica,sans-serif;
-  overflow:hidden;
+  touch-action:none;
 }
 
 #game{
   display:block;
+  position:fixed;
+  left:0;
+  top:0;
   width:100vw;
-  height:100vh;
+  height:100dvh;
   background:#111;
 }
+
+/* =========================
+   HUD
+========================= */
 
 #hud{
   position:fixed;
   inset:0;
+  width:100%;
+  height:100dvh;
   pointer-events:none;
 }
 
@@ -218,19 +237,37 @@ body{
   opacity:0;
 }
 
+button{
+  border:0;
+  padding:12px 20px;
+  border-radius:10px;
+  background:#2ee66b;
+  color:#061009;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* =========================
+   MENU
+========================= */
+
 #menu{
   position:fixed;
   inset:0;
+  width:100%;
+  height:100dvh;
   background:
     radial-gradient(circle at center,#172536,#05070a 70%);
   display:flex;
   align-items:center;
   justify-content:center;
-  z-index:20;
+  z-index:200;
 }
 
 .card{
   width:min(500px,92vw);
+  max-height:94dvh;
+  overflow:auto;
   padding:30px;
   background:#0b1018ee;
   border:1px solid #ffffff20;
@@ -248,20 +285,6 @@ body{
   color:#aaa;
   line-height:1.5;
   margin-bottom:20px;
-}
-
-button{
-  border:0;
-  padding:12px 20px;
-  border-radius:10px;
-  background:#2ee66b;
-  color:#061009;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-button:hover{
-  filter:brightness(1.1);
 }
 
 #mapSelect{
@@ -288,12 +311,18 @@ button:hover{
   margin-top:18px;
 }
 
+/* =========================
+   MOBILE CONTROLS
+========================= */
+
 #mobileControls{
   display:none;
   position:fixed;
   inset:0;
+  width:100%;
+  height:100dvh;
   pointer-events:none;
-  z-index:10;
+  z-index:100;
 }
 
 .joy{
@@ -339,6 +368,11 @@ button:hover{
   border:2px solid #ffffff33;
   color:white;
   font-size:11px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  touch-action:none;
 }
 
 #jumpBtn{
@@ -356,7 +390,12 @@ button:hover{
   bottom:135px;
 }
 
-@media(max-width:800px){
+/* =========================
+   PORTRAIT MOBILE
+========================= */
+
+@media(max-width:900px){
+
   #mobileControls{
     display:block;
   }
@@ -398,6 +437,209 @@ button:hover{
     padding:6px 8px;
   }
 }
+
+/* =========================
+   LANDSCAPE MOBILE FIX
+========================= */
+
+@media(max-width:900px) and (orientation:landscape){
+
+  #game{
+    width:100vw;
+    height:100dvh;
+  }
+
+  #hud{
+    width:100vw;
+    height:100dvh;
+  }
+
+  #mobileControls{
+    display:block;
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100dvh;
+    z-index:100;
+    pointer-events:none;
+  }
+
+  /* LEFT MOVEMENT */
+
+  #moveJoy{
+    left:
+      max(12px, env(safe-area-inset-left));
+    bottom:
+      max(12px, env(safe-area-inset-bottom));
+    width:105px;
+    height:105px;
+  }
+
+  /* RIGHT AIM */
+
+  #aimJoy{
+    right:
+      max(12px, env(safe-area-inset-right));
+    bottom:
+      max(12px, env(safe-area-inset-bottom));
+    width:105px;
+    height:105px;
+  }
+
+  .joy .knob{
+    width:46px;
+    height:46px;
+  }
+
+  /* JUMP */
+
+  #jumpBtn{
+    right:145px;
+    bottom:20px;
+    width:55px;
+    height:55px;
+  }
+
+  /* RELOAD */
+
+  #reloadBtn{
+    right:82px;
+    bottom:82px;
+    width:55px;
+    height:55px;
+  }
+
+  /* WEAPON */
+
+  #switchBtn{
+    right:20px;
+    bottom:82px;
+    width:55px;
+    height:55px;
+  }
+
+  .mobileBtn{
+    font-size:10px;
+  }
+
+  #healthPanel{
+    left:10px;
+    bottom:8px;
+    width:150px;
+    padding:6px 8px;
+  }
+
+  #weaponPanel{
+    right:10px;
+    bottom:8px;
+    padding:6px 8px;
+  }
+
+  #ammo{
+    font-size:20px;
+  }
+
+  #minimap{
+    right:8px;
+    top:8px;
+    width:105px;
+    height:72px;
+  }
+
+  #levelBadge{
+    top:8px;
+  }
+
+  #zoneText{
+    top:40px;
+  }
+
+  .top{
+    top:8px;
+    left:8px;
+  }
+
+  .top .panel{
+    padding:4px 7px;
+  }
+
+  .small{
+    font-size:9px;
+  }
+
+  .value{
+    font-size:12px;
+  }
+}
+
+/* =========================
+   VERY SHORT LANDSCAPE
+========================= */
+
+@media(max-width:900px) and (orientation:landscape) and (max-height:450px){
+
+  #moveJoy,
+  #aimJoy{
+    width:88px;
+    height:88px;
+  }
+
+  #jumpBtn,
+  #reloadBtn,
+  #switchBtn{
+    width:48px;
+    height:48px;
+  }
+
+  #jumpBtn{
+    right:126px;
+    bottom:14px;
+  }
+
+  #reloadBtn{
+    right:70px;
+    bottom:70px;
+  }
+
+  #switchBtn{
+    right:14px;
+    bottom:70px;
+  }
+
+  #healthPanel{
+    width:130px;
+    font-size:11px;
+  }
+
+  #weaponPanel{
+    font-size:11px;
+  }
+
+  #ammo{
+    font-size:17px;
+  }
+
+  #minimap{
+    width:90px;
+    height:62px;
+  }
+}
+
+/* =========================
+   NOTCH / SAFE AREA
+========================= */
+
+@supports(padding:max(0px)){
+
+  #moveJoy{
+    left:max(25px,env(safe-area-inset-left));
+  }
+
+  #aimJoy{
+    right:max(25px,env(safe-area-inset-right));
+  }
+
+}
 </style>
 </head>
 
@@ -408,6 +650,7 @@ button:hover{
 <div id="hud">
 
   <div class="top">
+
     <div class="panel">
       <div class="small">LEVEL</div>
       <div class="value" id="level">1</div>
@@ -422,6 +665,7 @@ button:hover{
       <div class="small">COINS</div>
       <div class="value" id="coins">0</div>
     </div>
+
   </div>
 
   <div id="levelBadge">
@@ -445,6 +689,7 @@ button:hover{
   <canvas id="minimap"></canvas>
 
   <div id="healthPanel" class="panel">
+
     <div>
       HP <span id="hpText">100</span>
     </div>
@@ -454,14 +699,22 @@ button:hover{
     </div>
 
     <div id="armorBar"></div>
+
   </div>
 
   <div id="weaponPanel" class="panel">
+
     <div id="ammo">12 / 48</div>
-    <div id="weapon">PISTOL</div>
+
+    <div id="weapon">
+      PISTOL
+    </div>
+
   </div>
 
 </div>
+
+<!-- MOBILE CONTROLS -->
 
 <div id="mobileControls">
 
@@ -487,6 +740,8 @@ button:hover{
 
 </div>
 
+<!-- MENU -->
+
 <div id="menu">
 
   <div class="card">
@@ -497,6 +752,7 @@ button:hover{
       Survive the shrinking zone, eliminate enemies,
       collect loot and complete all 10 levels.
     </p>
+
     <div id="mapSelect">
 
       <button class="mapBtn active" data-map="forest">
@@ -520,12 +776,12 @@ button:hover{
     <button id="startBtn">
       START BATTLE
     </button>
-     
+<p>Developed By Bipin Masal</p>
     <div id="controls">
       PC: WASD = Move · Mouse = Aim · Auto Fire<br>
       Mobile: Left Joystick = Move · Right Joystick = Aim
     </div>
-<p>Developed By Bipin Masal</p>
+
   </div>
 
 </div>
@@ -537,39 +793,43 @@ button:hover{
    CANVAS
 ========================================================= */
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-const mini = document.getElementById("minimap");
-const mctx = mini.getContext("2d");
+const mini=document.getElementById("minimap");
+const mctx=mini.getContext("2d");
 
-let W = innerWidth;
-let H = innerHeight;
+let W=innerWidth;
+let H=innerHeight;
 
 function resize(){
 
-  W = canvas.width = innerWidth;
-  H = canvas.height = innerHeight;
+  W=innerWidth;
+  H=innerHeight;
 
-  const dpr = Math.min(devicePixelRatio || 1,2);
+  const dpr=Math.min(devicePixelRatio||1,2);
 
-  canvas.width = innerWidth*dpr;
-  canvas.height = innerHeight*dpr;
+  canvas.width=W*dpr;
+  canvas.height=H*dpr;
 
-  canvas.style.width = innerWidth+"px";
-  canvas.style.height = innerHeight+"px";
+  canvas.style.width=W+"px";
+  canvas.style.height=H+"px";
 
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 
 addEventListener("resize",resize);
+addEventListener("orientationchange",()=>{
+  setTimeout(resize,150);
+});
+
 resize();
 
 /* =========================================================
    WORLD
 ========================================================= */
 
-const world = {
+const world={
   w:2600,
   h:1800
 };
@@ -578,7 +838,7 @@ const world = {
    LEVELS
 ========================================================= */
 
-const LEVELS = [
+const LEVELS=[
 
   {enemies:5,hp:70,speed:80,zone:830,loot:14},
   {enemies:8,hp:75,speed:88,zone:790,loot:18},
@@ -597,7 +857,7 @@ const LEVELS = [
    MAPS
 ========================================================= */
 
-const MAPS = {
+const MAPS={
 
   forest:{
     bg:"#31472d",
@@ -665,13 +925,13 @@ const MAPS = {
 
 };
 
-let currentMap = "forest";
+let currentMap="forest";
 
 /* =========================================================
    WEAPONS
 ========================================================= */
 
-const weapons = {
+const weapons={
 
   pistol:{
     name:"PISTOL",
@@ -731,13 +991,13 @@ const weapons = {
 
 };
 
-let gun = "pistol";
+let gun="pistol";
 
-const ammo = {};
+const ammo={};
 
 for(const key in weapons){
 
-  ammo[key] = {
+  ammo[key]={
     mag:weapons[key].mag,
     reserve:weapons[key].reserve
   };
@@ -748,7 +1008,7 @@ for(const key in weapons){
    PLAYER
 ========================================================= */
 
-const player = {
+const player={
 
   x:1300,
   y:900,
@@ -782,64 +1042,54 @@ const player = {
    INPUT
 ========================================================= */
 
-const keys = {};
+const keys={};
 
 addEventListener("keydown",e=>{
 
-  keys[e.key.toLowerCase()] = true;
+  keys[e.key.toLowerCase()]=true;
 
-  if(e.key.toLowerCase()==="r"){
+  if(e.key.toLowerCase()==="r")
     reload();
-  }
 
-  if(e.key.toLowerCase()==="q"){
+  if(e.key.toLowerCase()==="q")
     switchWeapon();
-  }
 
-  if(e.code==="Space"){
+  if(e.code==="Space")
     jump();
-  }
 
 });
 
 addEventListener("keyup",e=>{
-  keys[e.key.toLowerCase()] = false;
+  keys[e.key.toLowerCase()]=false;
 });
 
 /* =========================================================
    MOUSE AIM
 ========================================================= */
 
-const mouse = {
+const mouse={
   x:W/2,
   y:H/2
 };
 
 addEventListener("mousemove",e=>{
 
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
+  mouse.x=e.clientX;
+  mouse.y=e.clientY;
 
 });
-
-/*
- IMPORTANT:
- No mouse click is required to shoot.
-*/
-
-addEventListener("contextmenu",e=>e.preventDefault());
 
 /* =========================================================
    MOBILE JOYSTICKS
 ========================================================= */
 
-const moveJoy = {
+const moveJoy={
   active:false,
   x:0,
   y:0
 };
 
-const aimJoy = {
+const aimJoy={
   active:false,
   x:0,
   y:0
@@ -847,47 +1097,51 @@ const aimJoy = {
 
 function setupJoystick(el,data){
 
-  const knob = el.querySelector(".knob");
+  const knob=el.querySelector(".knob");
 
   function update(e){
 
-    const rect = el.getBoundingClientRect();
+    const rect=el.getBoundingClientRect();
 
-    let x = e.clientX - (rect.left + rect.width/2);
-    let y = e.clientY - (rect.top + rect.height/2);
+    let x=
+      e.clientX-
+      (rect.left+rect.width/2);
 
-    const max = rect.width/2 - 25;
+    let y=
+      e.clientY-
+      (rect.top+rect.height/2);
 
-    const d = Math.hypot(x,y);
+    const max=
+      rect.width/2-22;
+
+    const d=Math.hypot(x,y);
 
     if(d>max){
 
-      x = x/d*max;
-      y = y/d*max;
+      x=x/d*max;
+      y=y/d*max;
 
     }
 
-    data.x = x/max;
-    data.y = y/max;
+    data.x=x/max;
+    data.y=y/max;
 
-    knob.style.left =
+    knob.style.left=
       `calc(50% + ${x}px)`;
 
-    knob.style.top =
+    knob.style.top=
       `calc(50% + ${y}px)`;
-
   }
 
   function start(e){
 
     e.preventDefault();
 
-    data.active = true;
+    data.active=true;
 
     el.setPointerCapture(e.pointerId);
 
     update(e);
-
   }
 
   function move(e){
@@ -895,29 +1149,23 @@ function setupJoystick(el,data){
     if(!data.active)return;
 
     update(e);
-
   }
 
-  function end(e){
+  function end(){
 
-    data.active = false;
+    data.active=false;
 
-    data.x = 0;
-    data.y = 0;
+    data.x=0;
+    data.y=0;
 
-    knob.style.left = "50%";
-    knob.style.top = "50%";
-
+    knob.style.left="50%";
+    knob.style.top="50%";
   }
 
   el.addEventListener("pointerdown",start);
   el.addEventListener("pointermove",move);
   el.addEventListener("pointerup",end);
   el.addEventListener("pointercancel",end);
-  el.addEventListener("pointerleave",e=>{
-    if(data.active)update(e);
-  });
-
 }
 
 setupJoystick(
@@ -935,74 +1183,68 @@ setupJoystick(
 ========================================================= */
 
 document.getElementById("jumpBtn")
-  .addEventListener("pointerdown",e=>{
-    e.preventDefault();
-    jump();
-  });
+.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  jump();
+});
 
 document.getElementById("reloadBtn")
-  .addEventListener("pointerdown",e=>{
-    e.preventDefault();
-    reload();
-  });
+.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  reload();
+});
 
 document.getElementById("switchBtn")
-  .addEventListener("pointerdown",e=>{
-    e.preventDefault();
-    switchWeapon();
-  });
+.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  switchWeapon();
+});
 
 /* =========================================================
-   GAME OBJECTS
+   OBJECTS
 ========================================================= */
 
-let enemies = [];
-let bullets = [];
-let loot = [];
-let particles = [];
-let obstacles = [];
+let enemies=[];
+let bullets=[];
+let loot=[];
+let particles=[];
+let obstacles=[];
 
-let running = false;
+let running=false;
 
-let camera = {
+let camera={
   x:0,
   y:0
 };
 
-let shake = 0;
+let shake=0;
 
 /* =========================================================
    ZONE
 ========================================================= */
 
-let zone = {
-
+let zone={
   x:1300,
   y:900,
-
   r:830,
-
   start:830,
   end:120,
-
   t:0,
-
   duration:150
-
 };
 
 /* =========================================================
    PROGRESS
 ========================================================= */
 
-let currentLevel =
-  Number(localStorage.getItem("miniBRLevel") || 1);
+let currentLevel=
+  Number(localStorage.getItem("miniBRLevel")||1);
 
-let xp =
-  Number(localStorage.getItem("miniBRXP") || 0);
+let xp=
+  Number(localStorage.getItem("miniBRXP")||0);
 
-let coins =
-  Number(localStorage.getItem("miniBRCoins") || 0);
+let coins=
+  Number(localStorage.getItem("miniBRCoins")||0);
 
 /* =========================================================
    UTILITIES
@@ -1021,7 +1263,7 @@ function clamp(v,a,b){
 }
 
 /* =========================================================
-   MAP
+   MAP SELECTION
 ========================================================= */
 
 document.querySelectorAll(".mapBtn")
@@ -1030,25 +1272,24 @@ document.querySelectorAll(".mapBtn")
   btn.addEventListener("click",()=>{
 
     document.querySelectorAll(".mapBtn")
-      .forEach(x=>x.classList.remove("active"));
+    .forEach(x=>x.classList.remove("active"));
 
     btn.classList.add("active");
 
-    currentMap = btn.dataset.map;
-
+    currentMap=btn.dataset.map;
   });
 
 });
 
 /* =========================================================
-   CREATE OBSTACLES
+   OBSTACLES
 ========================================================= */
 
 function createObstacles(){
 
-  obstacles = [];
+  obstacles=[];
 
-  const count = MAPS[currentMap].obstacles;
+  const count=MAPS[currentMap].obstacles;
 
   for(let i=0;i<count;i++){
 
@@ -1056,111 +1297,109 @@ function createObstacles(){
 
     do{
 
-      x = rnd(200,world.w-400);
-      y = rnd(200,world.h-350);
+      x=rnd(200,world.w-400);
+      y=rnd(200,world.h-350);
 
-      w = rnd(100,260);
-      h = rnd(80,220);
+      w=rnd(100,260);
+      h=rnd(80,220);
 
     }while(
-      dist(x+w/2,y+h/2,
-           player.x,player.y)<350
+      dist(
+        x+w/2,
+        y+h/2,
+        player.x,
+        player.y
+      )<350
     );
 
     obstacles.push({
-      x,
-      y,
-      w,
-      h
+      x,y,w,h
     });
-
   }
-
 }
-
-/* =========================================================
-   COLLISION
-========================================================= */
 
 function circleRectCollision(cx,cy,r,rect){
 
-  const x = clamp(cx,rect.x,rect.x+rect.w);
-  const y = clamp(cy,rect.y,rect.y+rect.h);
+  const x=
+    clamp(cx,rect.x,rect.x+rect.w);
+
+  const y=
+    clamp(cy,rect.y,rect.y+rect.h);
 
   return dist(cx,cy,x,y)<r;
-
 }
 
 function blocked(x,y,r=16){
 
-  if(x<r || y<r ||
-     x>world.w-r ||
-     y>world.h-r){
-
+  if(
+    x<r ||
+    y<r ||
+    x>world.w-r ||
+    y>world.h-r
+  ){
     return true;
-
   }
 
   for(const o of obstacles){
 
     if(circleRectCollision(x,y,r,o))
       return true;
-
   }
 
   return false;
-
 }
 
 /* =========================================================
-   START GAME
+   START
 ========================================================= */
 
 function start(){
 
-  running = true;
+  running=true;
 
-  document.getElementById("menu").style.display="none";
+  document.getElementById("menu")
+    .style.display="none";
 
-  player.x = world.w/2;
-  player.y = world.h/2;
+  player.x=world.w/2;
+  player.y=world.h/2;
 
-  player.hp = 100;
-  player.armor = 0;
+  player.hp=100;
+  player.armor=0;
 
-  player.angle = 0;
+  player.angle=0;
 
-  player.z = 0;
-  player.vy = 0;
-  player.jumping = false;
+  player.z=0;
+  player.vy=0;
+  player.jumping=false;
 
-  player.kills = 0;
-  player.reloading = false;
+  player.kills=0;
+  player.reloading=false;
 
-  gun = "pistol";
+  gun="pistol";
 
   for(const key in weapons){
 
-    ammo[key].mag = weapons[key].mag;
-    ammo[key].reserve = weapons[key].reserve;
-
+    ammo[key].mag=weapons[key].mag;
+    ammo[key].reserve=weapons[key].reserve;
   }
 
-  const L = LEVELS[currentLevel-1];
+  const L=LEVELS[currentLevel-1];
 
-  zone.x = world.w/2;
-  zone.y = world.h/2;
+  zone.x=world.w/2;
+  zone.y=world.h/2;
 
-  zone.start = L.zone * MAPS[currentMap].zone;
-  zone.r = zone.start;
-  zone.end = 120;
+  zone.start=
+    L.zone*MAPS[currentMap].zone;
 
-  zone.t = 0;
+  zone.r=zone.start;
 
-  enemies = [];
-  bullets = [];
-  loot = [];
-  particles = [];
+  zone.end=120;
+  zone.t=0;
+
+  enemies=[];
+  bullets=[];
+  loot=[];
+  particles=[];
 
   createObstacles();
 
@@ -1172,16 +1411,15 @@ function start(){
   );
 
   updateUI();
-
 }
 
 /* =========================================================
-   SPAWN ENEMIES
+   ENEMIES
 ========================================================= */
 
 function spawnEnemies(count){
 
-  const L = LEVELS[currentLevel-1];
+  const L=LEVELS[currentLevel-1];
 
   for(let i=0;i<count;i++){
 
@@ -1189,8 +1427,8 @@ function spawnEnemies(count){
 
     do{
 
-      x = rnd(80,world.w-80);
-      y = rnd(80,world.h-80);
+      x=rnd(80,world.w-80);
+      y=rnd(80,world.h-80);
 
     }while(
       dist(x,y,player.x,player.y)<500 ||
@@ -1209,14 +1447,12 @@ function spawnEnemies(count){
 
       speed:L.speed,
 
-      lastShot:performance.now()+rnd(0,1200),
+      lastShot:
+        performance.now()+rnd(0,1200),
 
       angle:0
-
     });
-
   }
-
 }
 
 /* =========================================================
@@ -1225,7 +1461,7 @@ function spawnEnemies(count){
 
 function spawnLoot(count){
 
-  const types = [
+  const types=[
     "ammo",
     "med",
     "armor",
@@ -1241,13 +1477,17 @@ function spawnLoot(count){
 
     do{
 
-      x = rnd(80,world.w-80);
-      y = rnd(80,world.h-80);
+      x=rnd(80,world.w-80);
+      y=rnd(80,world.h-80);
 
     }while(blocked(x,y,15));
 
-    let type =
-      types[Math.floor(Math.random()*types.length)];
+    const type=
+      types[
+        Math.floor(
+          Math.random()*types.length
+        )
+      ];
 
     loot.push({
       x,
@@ -1255,9 +1495,7 @@ function spawnLoot(count){
       type,
       r:12
     });
-
   }
-
 }
 
 /* =========================================================
@@ -1266,38 +1504,46 @@ function spawnLoot(count){
 
 function reload(){
 
-  if(!running || player.reloading)
+  if(!running||player.reloading)
     return;
 
-  const a = ammo[gun];
-  const w = weapons[gun];
+  const a=ammo[gun];
+  const w=weapons[gun];
 
-  if(a.mag>=w.max || a.reserve<=0)
+  if(
+    a.mag>=w.max ||
+    a.reserve<=0
+  ){
     return;
+  }
 
-  player.reloading = true;
+  player.reloading=true;
 
   showMessage("RELOADING...");
 
   setTimeout(()=>{
 
-    const need = w.max-a.mag;
-    const take = Math.min(need,a.reserve);
+    const need=w.max-a.mag;
 
-    a.mag += take;
-    a.reserve -= take;
+    const take=
+      Math.min(
+        need,
+        a.reserve
+      );
 
-    player.reloading = false;
+    a.mag+=take;
+    a.reserve-=take;
+
+    player.reloading=false;
 
   },650);
-
 }
 
 /* =========================================================
-   SWITCH WEAPON
+   SWITCH
 ========================================================= */
 
-const weaponOrder = [
+const weaponOrder=[
   "pistol",
   "smg",
   "rifle",
@@ -1309,17 +1555,18 @@ function switchWeapon(){
 
   if(!running)return;
 
-  let i = weaponOrder.indexOf(gun);
+  let i=weaponOrder.indexOf(gun);
 
   i++;
 
   if(i>=weaponOrder.length)
     i=0;
 
-  gun = weaponOrder[i];
+  gun=weaponOrder[i];
 
-  showMessage(weapons[gun].name);
-
+  showMessage(
+    weapons[gun].name
+  );
 }
 
 /* =========================================================
@@ -1332,55 +1579,36 @@ function jump(){
 
   if(player.z<=0){
 
-    player.z = 1;
-    player.vy = 430;
-    player.jumping = true;
-
+    player.z=1;
+    player.vy=430;
+    player.jumping=true;
   }
-
 }
 
 /* =========================================================
    AUTO FIRE
 ========================================================= */
 
-/*
- THIS IS THE IMPORTANT PART.
-
- The gun fires automatically.
-
- It does NOT:
- - search enemies
- - select enemies
- - auto aim
-
- PC:
- Mouse controls direction.
-
- Mobile:
- Right joystick controls direction.
-
- If no joystick input is active,
- the last aim direction remains.
-*/
-
 function autoShoot(now){
 
   if(!running)return;
 
-  if(player.reloading)
-    return;
+  if(player.reloading)return;
 
-  /* -----------------------------
-     PC MOUSE AIM
-  ----------------------------- */
+  /*
+    PC:
+    Mouse controls direction.
+  */
 
   if(
     !aimJoy.active ||
-    Math.hypot(aimJoy.x,aimJoy.y)<0.1
+    Math.hypot(
+      aimJoy.x,
+      aimJoy.y
+    )<0.1
   ){
 
-    player.angle =
+    player.angle=
       Math.atan2(
         mouse.y-H/2,
         mouse.x-W/2
@@ -1388,56 +1616,58 @@ function autoShoot(now){
 
   }
 
-  /* -----------------------------
-     MOBILE AIM JOYSTICK
-  ----------------------------- */
+  /*
+    MOBILE:
+    Right joystick controls direction.
+  */
 
   else{
 
-    player.angle =
+    player.angle=
       Math.atan2(
         aimJoy.y,
         aimJoy.x
       );
-
   }
 
-  /* -----------------------------
-     AUTO RELOAD
-  ----------------------------- */
+  /*
+    AUTOMATIC RELOAD
+  */
 
   if(ammo[gun].mag<=0){
 
     reload();
-    return;
 
+    return;
   }
 
-  const weapon = weapons[gun];
+  const weapon=weapons[gun];
 
   if(
-    now-player.lastShot <
+    now-player.lastShot<
     weapon.rate
   ){
-
     return;
-
   }
 
   ammo[gun].mag--;
 
-  player.lastShot = now;
+  player.lastShot=now;
 
-  /* -----------------------------
-     SHOTGUN
-  ----------------------------- */
+  /*
+    SHOTGUN
+  */
 
   if(weapon.pellets){
 
-    for(let i=0;i<weapon.pellets;i++){
+    for(
+      let i=0;
+      i<weapon.pellets;
+      i++
+    ){
 
-      const a =
-        player.angle +
+      const a=
+        player.angle+
         rnd(-0.22,0.22);
 
       bullets.push({
@@ -1463,25 +1693,23 @@ function autoShoot(now){
         enemy:false,
 
         dmg:weapon.damage
-
       });
-
     }
 
   }
 
-  /* -----------------------------
-     NORMAL WEAPON
-  ----------------------------- */
+  /*
+    NORMAL WEAPONS
+  */
 
   else{
 
-    const spread =
+    const spread=
       gun==="sniper"
-      ? 0.005
-      : 0.035;
+      ?0.005
+      :0.035;
 
-    const a =
+    const a=
       player.angle+
       rnd(-spread,spread);
 
@@ -1508,9 +1736,7 @@ function autoShoot(now){
       enemy:false,
 
       dmg:weapon.damage
-
     });
-
   }
 
   particles.push(
@@ -1523,15 +1749,14 @@ function autoShoot(now){
 
       weapon.color,
 
-      weapon.pellets ? 10 : 5
+      weapon.pellets?10:5
     )
   );
 
-  shake =
+  shake=
     gun==="sniper"
-    ? 5
-    : 2;
-
+    ?5
+    :2;
 }
 
 /* =========================================================
@@ -1540,12 +1765,16 @@ function autoShoot(now){
 
 function enemyShoot(enemy,now){
 
-  if(now-enemy.lastShot<1000+rnd(0,700))
+  if(
+    now-enemy.lastShot<
+    1000+rnd(0,700)
+  ){
     return;
+  }
 
-  enemy.lastShot = now;
+  enemy.lastShot=now;
 
-  const a =
+  const a=
     Math.atan2(
       player.y-enemy.y,
       player.x-enemy.x
@@ -1566,35 +1795,32 @@ function enemyShoot(enemy,now){
     enemy:true,
 
     dmg:8
-
   });
-
 }
 
 /* =========================================================
-   PLAYER DAMAGE
+   DAMAGE
 ========================================================= */
 
 function damagePlayer(dmg){
 
   if(!running)return;
 
-  let damage = dmg;
+  let damage=dmg;
 
   if(player.armor>0){
 
-    const absorb =
+    const absorb=
       Math.min(
         player.armor,
         damage*.6
       );
 
-    player.armor -= absorb;
-    damage -= absorb;
-
+    player.armor-=absorb;
+    damage-=absorb;
   }
 
-  player.hp -= damage;
+  player.hp-=damage;
 
   document.getElementById("damage")
     .style.opacity=".35";
@@ -1613,13 +1839,11 @@ function damagePlayer(dmg){
     player.hp=0;
 
     end(false);
-
   }
-
 }
 
 /* =========================================================
-   KILL ENEMY
+   KILL
 ========================================================= */
 
 function killEnemy(enemy,index){
@@ -1628,14 +1852,21 @@ function killEnemy(enemy,index){
 
   player.kills++;
 
-  xp += 25;
-  coins += 10;
+  xp+=25;
+  coins+=10;
 
-  localStorage.setItem("miniBRXP",xp);
-  localStorage.setItem("miniBRCoins",coins);
+  localStorage.setItem(
+    "miniBRXP",
+    xp
+  );
+
+  localStorage.setItem(
+    "miniBRCoins",
+    coins
+  );
 
   addFeed(
-    `☠ Enemy eliminated +10 coins`
+    "☠ Enemy eliminated +10 coins"
   );
 
   for(let i=0;i<12;i++){
@@ -1651,11 +1882,8 @@ function killEnemy(enemy,index){
       life:500,
 
       color:"#ff5555"
-
     });
-
   }
-
 }
 
 /* =========================================================
@@ -1664,9 +1892,13 @@ function killEnemy(enemy,index){
 
 function pickup(){
 
-  for(let i=loot.length-1;i>=0;i--){
+  for(
+    let i=loot.length-1;
+    i>=0;
+    i--
+  ){
 
-    const item = loot[i];
+    const item=loot[i];
 
     if(
       dist(
@@ -1675,26 +1907,28 @@ function pickup(){
         item.x,
         item.y
       )>35
-    )continue;
+    ){
+      continue;
+    }
 
-    const mapLoot =
+    const mapLoot=
       MAPS[currentMap].loot;
 
     if(item.type==="ammo"){
 
-      ammo.pistol.reserve +=
+      ammo.pistol.reserve+=
         Math.round(18*mapLoot.ammo);
 
-      ammo.smg.reserve +=
+      ammo.smg.reserve+=
         Math.round(30*mapLoot.ammo);
 
-      ammo.rifle.reserve +=
+      ammo.rifle.reserve+=
         Math.round(30*mapLoot.ammo);
 
-      ammo.shotgun.reserve +=
+      ammo.shotgun.reserve+=
         Math.round(10*mapLoot.ammo);
 
-      ammo.sniper.reserve +=
+      ammo.sniper.reserve+=
         Math.round(5*mapLoot.ammo);
 
       showPickup("AMMO +");
@@ -1703,11 +1937,13 @@ function pickup(){
 
     else if(item.type==="med"){
 
-      player.hp =
+      player.hp=
         Math.min(
           player.maxHp,
           player.hp+
-          Math.round(30*mapLoot.med)
+          Math.round(
+            30*mapLoot.med
+          )
         );
 
       showPickup("MEDKIT");
@@ -1716,11 +1952,13 @@ function pickup(){
 
     else if(item.type==="armor"){
 
-      player.armor =
+      player.armor=
         Math.min(
           player.maxArmor,
           player.armor+
-          Math.round(40*mapLoot.armor)
+          Math.round(
+            40*mapLoot.armor
+          )
         );
 
       showPickup("ARMOR");
@@ -1764,9 +2002,7 @@ function pickup(){
     }
 
     loot.splice(i,1);
-
   }
-
 }
 
 /* =========================================================
@@ -1776,10 +2012,6 @@ function pickup(){
 function update(dt,now){
 
   if(!running)return;
-
-  /* -----------------------------
-     MOVEMENT
-  ----------------------------- */
 
   let mx=0;
   let my=0;
@@ -1791,9 +2023,8 @@ function update(dt,now){
 
   if(moveJoy.active){
 
-    mx += moveJoy.x;
-    my += moveJoy.y;
-
+    mx+=moveJoy.x;
+    my+=moveJoy.y;
   }
 
   const len=Math.hypot(mx,my);
@@ -1803,77 +2034,82 @@ function update(dt,now){
     mx/=len;
     my/=len;
 
-    const speed =
+    const speed=
       keys.shift
-      ? player.speed*1.35
-      : player.speed;
+      ?player.speed*1.35
+      :player.speed;
 
-    const nx =
+    const nx=
       player.x+
       mx*speed*dt;
 
-    const ny =
+    const ny=
       player.y+
       my*speed*dt;
 
-    if(!blocked(nx,player.y,player.r))
+    if(
+      !blocked(
+        nx,
+        player.y,
+        player.r
+      )
+    ){
       player.x=nx;
+    }
 
-    if(!blocked(player.x,ny,player.r))
+    if(
+      !blocked(
+        player.x,
+        ny,
+        player.r
+      )
+    ){
       player.y=ny;
-
+    }
   }
 
-  /* -----------------------------
-     JUMP PHYSICS
-  ----------------------------- */
+  /* JUMP */
 
   if(player.z>0){
 
-    player.vy -= 900*dt;
+    player.vy-=900*dt;
 
-    player.z += player.vy*dt;
+    player.z+=
+      player.vy*dt;
 
     if(player.z<=0){
 
       player.z=0;
       player.vy=0;
       player.jumping=false;
-
     }
-
   }
 
-  /* -----------------------------
-     AUTO SHOOT
-  ----------------------------- */
+  /* AUTO FIRE */
 
   autoShoot(now);
 
-  /* -----------------------------
-     AUTO PICKUP
-  ----------------------------- */
+  /* PICKUP */
 
   pickup();
 
-  /* -----------------------------
-     ZONE
-  ----------------------------- */
+  /* ZONE */
 
-  zone.t += dt;
+  zone.t+=dt;
 
-  const progress =
+  const progress=
     clamp(
       zone.t/zone.duration,
       0,
       1
     );
 
-  zone.r =
+  zone.r=
     zone.start+
-    (zone.end-zone.start)*progress;
+    (zone.end-zone.start)*
+    progress;
 
-  const dZone =
+  const dZone=
     dist(
       player.x,
       player.y,
@@ -1883,17 +2119,16 @@ function update(dt,now){
 
   if(dZone>zone.r){
 
-    damagePlayer(
-      12*dt
-    );
-
+    damagePlayer(12*dt);
   }
 
-  /* -----------------------------
-     ENEMIES
-  ----------------------------- */
+  /* ENEMIES */
 
-  for(let i=enemies.length-1;i>=0;i--){
+  for(
+    let i=enemies.length-1;
+    i>=0;
+    i--
+  ){
 
     const e=enemies[i];
 
@@ -1907,23 +2142,37 @@ function update(dt,now){
       const nx=dx/d;
       const ny=dy/d;
 
-      const speed=e.speed;
+      const ex=
+        e.x+
+        nx*e.speed*dt;
 
-      const ex=e.x+
-        nx*speed*dt;
+      const ey=
+        e.y+
+        ny*e.speed*dt;
 
-      const ey=e.y+
-        ny*speed*dt;
-
-      if(!blocked(ex,e.y,e.r))
+      if(
+        !blocked(
+          ex,
+          e.y,
+          e.r
+        )
+      ){
         e.x=ex;
+      }
 
-      if(!blocked(e.x,ey,e.r))
+      if(
+        !blocked(
+          e.x,
+          ey,
+          e.r
+        )
+      ){
         e.y=ey;
-
+      }
     }
 
-    e.angle=Math.atan2(dy,dx);
+    e.angle=
+      Math.atan2(dy,dx);
 
     if(d<620)
       enemyShoot(e,now);
@@ -1943,9 +2192,7 @@ function update(dt,now){
 
         killEnemy(e,i);
         continue;
-
       }
-
     }
 
     if(d<35){
@@ -1953,16 +2200,16 @@ function update(dt,now){
       damagePlayer(
         20*dt
       );
-
     }
-
   }
 
-  /* -----------------------------
-     BULLETS
-  ----------------------------- */
+  /* BULLETS */
 
-  for(let i=bullets.length-1;i>=0;i--){
+  for(
+    let i=bullets.length-1;
+    i>=0;
+    i--
+  ){
 
     const b=bullets[i];
 
@@ -1981,16 +2228,17 @@ function update(dt,now){
 
       bullets.splice(i,1);
       continue;
-
     }
-
-    /* PLAYER BULLET */
 
     if(!b.enemy){
 
       let hit=false;
 
-      for(let j=enemies.length-1;j>=0;j--){
+      for(
+        let j=enemies.length-1;
+        j>=0;
+        j--
+      ){
 
         const e=enemies[j];
 
@@ -2000,8 +2248,7 @@ function update(dt,now){
             b.y,
             e.x,
             e.y
-          )<
-          e.r+4
+          )<e.r+4
         ){
 
           e.hp-=b.dmg;
@@ -2022,20 +2269,15 @@ function update(dt,now){
           if(e.hp<=0){
 
             killEnemy(e,j);
-
           }
 
           break;
-
         }
-
       }
 
       if(hit)continue;
 
     }
-
-    /* ENEMY BULLET */
 
     else{
 
@@ -2045,8 +2287,7 @@ function update(dt,now){
           b.y,
           player.x,
           player.y
-        )<
-        player.r+5
+        )<player.r+5
       ){
 
         damagePlayer(b.dmg);
@@ -2054,18 +2295,17 @@ function update(dt,now){
         bullets.splice(i,1);
 
         continue;
-
       }
-
     }
-
   }
 
-  /* -----------------------------
-     PARTICLES
-  ----------------------------- */
+  /* PARTICLES */
 
-  for(let i=particles.length-1;i>=0;i--){
+  for(
+    let i=particles.length-1;
+    i>=0;
+    i--
+  ){
 
     const p=particles[i];
 
@@ -2079,31 +2319,28 @@ function update(dt,now){
 
     if(p.life<=0)
       particles.splice(i,1);
-
   }
 
-  /* -----------------------------
-     CAMERA
-  ----------------------------- */
+  /* CAMERA */
 
-  camera.x =
+  camera.x=
     player.x-W/2;
 
-  camera.y =
+  camera.y=
     player.y-H/2;
 
-  camera.x =
+  camera.x=
     clamp(
       camera.x,
       0,
-      world.w-W
+      Math.max(0,world.w-W)
     );
 
-  camera.y =
+  camera.y=
     clamp(
       camera.y,
       0,
-      world.h-H
+      Math.max(0,world.h-H)
     );
 
   if(shake>0){
@@ -2115,21 +2352,14 @@ function update(dt,now){
 
     if(shake<.2)
       shake=0;
-
   }
 
-  /* -----------------------------
-     WIN
-  ----------------------------- */
+  /* WIN */
 
-  if(enemies.length===0){
-
+  if(enemies.length===0)
     completeLevel();
 
-  }
-
   updateUI();
-
 }
 
 /* =========================================================
@@ -2153,22 +2383,24 @@ function spark(x,y,color,count){
       life:rnd(200,500),
 
       color
-
     });
-
   }
 
   return arr;
-
 }
 
 /* =========================================================
-   DRAW WORLD
+   DRAW
 ========================================================= */
 
 function draw(){
 
-  ctx.clearRect(0,0,W,H);
+  ctx.clearRect(
+    0,
+    0,
+    W,
+    H
+  );
 
   ctx.save();
 
@@ -2178,25 +2410,17 @@ function draw(){
   );
 
   drawBackground();
-
   drawZone();
-
   drawObstacles();
-
   drawLoot();
-
   drawBullets();
-
   drawEnemies();
-
   drawPlayer();
-
   drawParticles();
 
   ctx.restore();
 
   drawMini();
-
 }
 
 /* =========================================================
@@ -2217,28 +2441,36 @@ function drawBackground(){
   );
 
   ctx.strokeStyle=map.grid;
-  ctx.lineWidth=1;
 
   const grid=80;
 
-  for(let x=0;x<world.w;x+=grid){
+  for(
+    let x=0;
+    x<world.w;
+    x+=grid
+  ){
 
     ctx.beginPath();
+
     ctx.moveTo(x,0);
     ctx.lineTo(x,world.h);
-    ctx.stroke();
 
+    ctx.stroke();
   }
 
-  for(let y=0;y<world.h;y+=grid){
+  for(
+    let y=0;
+    y<world.h;
+    y+=grid
+  ){
 
     ctx.beginPath();
+
     ctx.moveTo(0,y);
     ctx.lineTo(world.w,y);
+
     ctx.stroke();
-
   }
-
 }
 
 /* =========================================================
@@ -2287,7 +2519,6 @@ function drawZone(){
   ctx.stroke();
 
   ctx.restore();
-
 }
 
 /* =========================================================
@@ -2309,8 +2540,7 @@ function drawObstacles(){
       o.h
     );
 
-    ctx.strokeStyle=
-      map.accent;
+    ctx.strokeStyle=map.accent;
 
     ctx.strokeRect(
       o.x,
@@ -2318,9 +2548,7 @@ function drawObstacles(){
       o.w,
       o.h
     );
-
   }
-
 }
 
 /* =========================================================
@@ -2394,13 +2622,11 @@ function drawLoot(){
       l.x,
       l.y
     );
-
   }
-
 }
 
 /* =========================================================
-   ENEMIES
+   ENEMY DRAW
 ========================================================= */
 
 function drawEnemies(){
@@ -2410,7 +2636,6 @@ function drawEnemies(){
     ctx.save();
 
     ctx.translate(e.x,e.y);
-
     ctx.rotate(e.angle);
 
     ctx.fillStyle="#d93636";
@@ -2438,8 +2663,6 @@ function drawEnemies(){
 
     ctx.restore();
 
-    /* HP */
-
     ctx.fillStyle="#300";
 
     ctx.fillRect(
@@ -2461,34 +2684,17 @@ function drawEnemies(){
       ),
       5
     );
-
   }
-
 }
 
 /* =========================================================
-   PLAYER
+   PLAYER DRAW
 ========================================================= */
 
 function drawPlayer(){
 
-  ctx.save();
-
-  const drawY =
+  const drawY=
     player.y-player.z;
-
-  ctx.translate(
-    player.x,
-    drawY
-  );
-
-  ctx.rotate(
-    player.angle
-  );
-
-  /* shadow */
-
-  ctx.restore();
 
   ctx.fillStyle="#0005";
 
@@ -2513,9 +2719,7 @@ function drawPlayer(){
     drawY
   );
 
-  ctx.rotate(
-    player.angle
-  );
+  ctx.rotate(player.angle);
 
   ctx.fillStyle="#36e36d";
 
@@ -2545,7 +2749,8 @@ function drawPlayer(){
 
   ctx.fill();
 
-  ctx.fillStyle=weapons[gun].color;
+  ctx.fillStyle=
+    weapons[gun].color;
 
   ctx.fillRect(
     8,
@@ -2555,11 +2760,10 @@ function drawPlayer(){
   );
 
   ctx.restore();
-
 }
 
 /* =========================================================
-   BULLETS
+   BULLETS DRAW
 ========================================================= */
 
 function drawBullets(){
@@ -2568,8 +2772,8 @@ function drawBullets(){
 
     ctx.fillStyle=
       b.enemy
-      ? "#ff5555"
-      : weapons[gun].color;
+      ?" #ff5555"
+      :weapons[gun].color;
 
     ctx.beginPath();
 
@@ -2582,20 +2786,18 @@ function drawBullets(){
     );
 
     ctx.fill();
-
   }
-
 }
 
 /* =========================================================
-   PARTICLES
+   PARTICLES DRAW
 ========================================================= */
 
 function drawParticles(){
 
   for(const p of particles){
 
-    ctx.globalAlpha =
+    ctx.globalAlpha=
       Math.max(
         0,
         p.life/500
@@ -2609,11 +2811,9 @@ function drawParticles(){
       4,
       4
     );
-
   }
 
   ctx.globalAlpha=1;
-
 }
 
 /* =========================================================
@@ -2644,8 +2844,6 @@ function drawMini(){
   const sx=mw/world.w;
   const sy=mh/world.h;
 
-  /* zone */
-
   mctx.strokeStyle="#5db7ff";
 
   mctx.beginPath();
@@ -2660,8 +2858,6 @@ function drawMini(){
 
   mctx.stroke();
 
-  /* enemies */
-
   mctx.fillStyle="#ff4444";
 
   for(const e of enemies){
@@ -2672,10 +2868,7 @@ function drawMini(){
       4,
       4
     );
-
   }
-
-  /* player */
 
   mctx.fillStyle="#39e36f";
 
@@ -2690,7 +2883,6 @@ function drawMini(){
   );
 
   mctx.fill();
-
 }
 
 /* =========================================================
@@ -2731,13 +2923,12 @@ function updateUI(){
   document.getElementById("weapon")
     .textContent=
       player.reloading
-      ? "RELOADING..."
-      : weapons[gun].name;
+      ?"RELOADING..."
+      :weapons[gun].name;
 
   document.getElementById("zoneText")
     .textContent=
       `SAFE ZONE ${Math.round(zone.r)}m`;
-
 }
 
 /* =========================================================
@@ -2761,7 +2952,6 @@ function showMessage(text){
     el.style.opacity="0";
 
   },1800);
-
 }
 
 function showPickup(text){
@@ -2779,7 +2969,6 @@ function showPickup(text){
     el.style.opacity="0";
 
   },900);
-
 }
 
 function addFeed(text){
@@ -2796,8 +2985,9 @@ function addFeed(text){
 
   feed.prepend(item);
 
-  setTimeout(()=>item.remove(),2500);
-
+  setTimeout(()=>{
+    item.remove();
+  },2500);
 }
 
 /* =========================================================
@@ -2837,9 +3027,7 @@ function completeLevel(){
     );
 
     setTimeout(()=>{
-
       start();
-
     },1500);
 
   }
@@ -2857,13 +3045,9 @@ function completeLevel(){
     );
 
     setTimeout(()=>{
-
       end(true);
-
     },500);
-
   }
-
 }
 
 /* =========================================================
@@ -2890,7 +3074,7 @@ function end(win){
 
     card.querySelector("p")
       .textContent=
-      `You completed all 10 levels! 
+      `You completed all 10 levels!
        Total kills: ${player.kills}`;
 
   }
@@ -2903,11 +3087,9 @@ function end(win){
 
     card.querySelector("p")
       .textContent=
-      `Level ${currentLevel} · 
+      `Level ${currentLevel} ·
        Kills ${player.kills}`;
-
   }
-
 }
 
 /* =========================================================
@@ -2915,22 +3097,21 @@ function end(win){
 ========================================================= */
 
 document.getElementById("startBtn")
-  .addEventListener("click",()=>{
+.addEventListener("click",()=>{
 
-    const card=
-      document.querySelector(".card");
+  const card=
+    document.querySelector(".card");
 
-    card.querySelector("h1")
-      .textContent=
-      "MINI BATTLE ROYALE";
+  card.querySelector("h1")
+    .textContent=
+    "MINI BATTLE ROYALE";
 
-    card.querySelector("p")
-      .textContent=
-      "Survive the shrinking zone, eliminate enemies, collect loot and complete all 10 levels.";
+  card.querySelector("p")
+    .textContent=
+    "Survive the shrinking zone, eliminate enemies, collect loot and complete all 10 levels.";
 
-    start();
-
-  });
+  start();
+});
 
 /* =========================================================
    GAME LOOP
@@ -2953,14 +3134,9 @@ function loop(now){
   draw();
 
   requestAnimationFrame(loop);
-
 }
 
 requestAnimationFrame(loop);
-
-/* =========================================================
-   INITIAL UI
-========================================================= */
 
 updateUI();
 
@@ -2968,3 +3144,4 @@ updateUI();
 
 </body>
 </html>
+```
